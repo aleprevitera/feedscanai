@@ -51,6 +51,14 @@
       background: var(--background);
       color: var(--text-primary);
     }
+    .privacy-note {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-top: 8px;
+      font-style: italic;
+      opacity: 0.8;
+    }
     
     .bg-gradient {
       position: fixed;
@@ -189,6 +197,9 @@
       justify-content: center;
       gap: 40px;
       margin: 20px 0;
+      clear: both;
+      position: relative;
+      z-index: 1; /* Lower z-index than dropdown */
     }
     
     .language-option {
@@ -307,33 +318,98 @@
     /* User Role Dropdown */
     .user-role-container {
       max-width: 400px;
-      margin: 30px auto 20px;
+      margin: 20px auto 40px;
       padding: 0 20px;
+      position: relative;
+      z-index: 1000; /* Ensure it's above all other elements */
     }
     
     .user-role-label {
       font-size: 1.2rem;
       color: var(--text-primary);
-      font-weight: 500;
-      margin-bottom: 10px;
+      font-weight: 600;
+      margin-bottom: 15px;
       text-align: center;
+      position: relative;
+      display: inline-block;
     }
     
-    .dropdown-content li > a, .dropdown-content li > span {
-      color: var(--primary);
+    .user-role-label::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      border-radius: 10px;
+    }
+    
+    /* Materialize select styling */
+    .input-field {
+      margin-top: 20px;
+      position: relative;
+      z-index: 1000; /* Higher z-index */
+    }
+    
+    .select-wrapper {
+      background-color: var(--background);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      padding: 5px 15px;
+      margin-bottom: 5px;
+      position: relative;
+      z-index: 1000; /* Higher z-index */
+    }
+    
+    .select-wrapper:hover {
+      box-shadow: 0 8px 20px rgba(67, 97, 238, 0.2);
+      transform: translateY(-3px);
     }
     
     .select-wrapper input.select-dropdown {
-      border-bottom: 1px solid var(--border);
+      font-family: 'Poppins', sans-serif;
+      border-bottom: none;
+      margin: 0;
+      padding: 10px 5px;
       color: var(--text-primary);
+      font-weight: 500;
     }
     
-    .select-wrapper input.select-dropdown:focus {
-      border-bottom: 2px solid var(--primary);
+    .select-wrapper .caret {
+      fill: var(--primary);
     }
     
-    .select-dropdown li.optgroup > span {
-      color: var(--primary-dark);
+    .dropdown-content {
+      border-radius: 12px;
+      background: var(--card-bg);
+      margin-top: 5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      position: absolute;
+      z-index: 1001 !important; /* Force highest z-index */
+    }
+    
+    .dropdown-content li > span {
+      color: var(--text-primary);
+      font-family: 'Poppins', sans-serif;
+      padding: 14px 16px;
+    }
+    
+    .dropdown-content li:hover, 
+    .dropdown-content li.selected {
+      background-color: rgba(67, 97, 238, 0.1);
+    }
+    
+    .dropdown-content li.selected > span {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    /* Fix for dropdown overlap issue */
+    .select-dropdown.dropdown-content {
+      z-index: 9999 !important; /* Ensure it's above everything */
     }
     
     /* Decorative Elements */
@@ -481,9 +557,25 @@
         <h1 class="selection-title">Welcome to FeedScan AI</h1>
         <p class="selection-subtitle">Your intelligent scientific literature analysis tool</p>
         
-        <div class="app-description">
+        <div class="app-description" style="margin-bottom: 15px;">
           FeedScan AI uses advanced artificial intelligence to analyze and summarize PubMed articles, 
           helping you stay up-to-date with the latest scientific research in a fraction of the time.
+        </div>
+        
+        <!-- User Role Selection -->
+        <div class="user-role-container">
+          <p class="user-role-label">Who are you? <span style="font-size: 0.9rem; opacity: 0.8;">(Optional)</span></p>
+          <div class="input-field">
+            <select id="user-role">
+              <option value="" disabled selected>Choose your profile</option>
+              <option value="student">Student</option>
+              <option value="researcher">Researcher</option>
+              <option value="doctor">Doctor</option>
+              <option value="biologist">Biologist</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <p class="privacy-note">Your selection helps us improve our service. No personal data is collected.</p>
         </div>
         
         <div class="language-options">
@@ -517,20 +609,6 @@
             </div>
           </div>
         </div>
-        
-        <!-- User Role Selection -->
-        <div class="user-role-container">
-          <p class="user-role-label">Who are you? (Optional)</p>
-          <div class="input-field">
-            <select id="user-role">
-              <option value="" disabled selected>Choose your profile</option>
-              <option value="student">Student</option>
-              <option value="researcher">Researcher</option>
-              <option value="doctor">Doctor</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
       </div>
     </div>
   </main>
@@ -546,9 +624,21 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize select dropdown
+      // Initialize select dropdown with custom options
       var elems = document.querySelectorAll('select');
-      var instances = M.FormSelect.init(elems);
+      var instances = M.FormSelect.init(elems, {
+        // Adding options to force dropdown to appear on top
+        dropdownOptions: {
+          constrainWidth: false,
+          container: document.body,
+          coverTrigger: false
+        }
+      });
+      
+      // Additional fix for dropdown z-index
+      document.querySelectorAll('.dropdown-content').forEach(function(dropdown) {
+        dropdown.style.zIndex = '9999';
+      });
       
       // Animate second language option
       const secondOption = document.getElementById('en-option');
@@ -572,14 +662,45 @@
       // Save language preference to localStorage
       localStorage.setItem('lang', lang);
       
-      // Save user role if selected
+      // Get user role if selected
       const userRoleSelect = document.getElementById('user-role');
+      const userRole = userRoleSelect.value || 'not_specified';
+      
+      // Save role to localStorage
       if (userRoleSelect.value) {
         localStorage.setItem('role', userRoleSelect.value);
       }
       
+      // Send anonymous analytics data to server
+      sendAnonymousAnalytics(lang, userRole);
+      
       // Redirect to the appropriate language version
       window.location.href = '/' + lang;
+    }
+    
+    // Function to send anonymous analytics data
+    function sendAnonymousAnalytics(lang, role) {
+        const analyticsData = {
+        language: lang,
+        userRole: role,
+        timestamp: new Date().toISOString().split('T')[0]
+      };
+      
+      // URL dello script Google Apps Script
+      const appScriptUrl = 'https://script.google.com/macros/s/AKfycbx2_mYDjSSL0HSzcyJYMk-mEvEvqodkguSfmOK91dFfqVRT-S7JV9lhc09-euRc-QZK/exec';
+      
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(appScriptUrl, JSON.stringify(analyticsData));
+      } else {
+        fetch(appScriptUrl, {
+          method: 'POST',
+          keepalive: true,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(analyticsData)
+        }).catch(error => console.log('Analytics error:', error));
+      }
     }
   </script>
 </body>
