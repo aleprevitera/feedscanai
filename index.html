@@ -175,6 +175,14 @@
       margin-bottom: 40px;
     }
     
+    .app-description {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 30px;
+      padding: 0 20px;
+      line-height: 1.6;
+    }
+    
     /* Language Options */
     .language-options {
       display: flex;
@@ -296,6 +304,38 @@
       transform: translateX(-50%) translateY(-10px);
     }
     
+    /* User Role Dropdown */
+    .user-role-container {
+      max-width: 400px;
+      margin: 30px auto 20px;
+      padding: 0 20px;
+    }
+    
+    .user-role-label {
+      font-size: 1.2rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    
+    .dropdown-content li > a, .dropdown-content li > span {
+      color: var(--primary);
+    }
+    
+    .select-wrapper input.select-dropdown {
+      border-bottom: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+    
+    .select-wrapper input.select-dropdown:focus {
+      border-bottom: 2px solid var(--primary);
+    }
+    
+    .select-dropdown li.optgroup > span {
+      color: var(--primary-dark);
+    }
+    
     /* Decorative Elements */
     .decoration {
       position: absolute;
@@ -366,7 +406,7 @@
         font-size: 2rem;
       }
       
-      .selection-subtitle {
+      .selection-subtitle, .app-description {
         font-size: 1.1rem;
         margin-bottom: 30px;
       }
@@ -403,7 +443,7 @@
         font-size: 1.7rem;
       }
       
-      .selection-subtitle {
+      .selection-subtitle, .app-description {
         font-size: 1rem;
       }
       
@@ -439,11 +479,16 @@
         <div class="decoration decoration-3"></div>
         
         <h1 class="selection-title">Welcome to FeedScan AI</h1>
-        <p class="selection-subtitle">Choose your preferred language to continue</p>
+        <p class="selection-subtitle">Your intelligent scientific literature analysis tool</p>
+        
+        <div class="app-description">
+          FeedScan AI uses advanced artificial intelligence to analyze and summarize PubMed articles, 
+          helping you stay up-to-date with the latest scientific research in a fraction of the time.
+        </div>
         
         <div class="language-options">
           <!-- Italian Option -->
-          <div class="language-option floating">
+          <div class="language-option floating" id="it-option">
             <div class="language-card">
               <div class="language-header">
                 <div class="flag-container">
@@ -452,13 +497,13 @@
               </div>
               <div class="language-content">
                 <h2 class="language-name">Italiano</h2>
-                <a href="/it" class="language-btn">Continua <i class="material-icons tiny">arrow_forward</i></a>
+                <a href="#" class="language-btn" onclick="selectLanguage('it')">Continua <i class="material-icons tiny">arrow_forward</i></a>
               </div>
             </div>
           </div>
           
           <!-- English Option -->
-          <div class="language-option" style="animation-delay: 0.5s;">
+          <div class="language-option" id="en-option" style="animation-delay: 0.5s;">
             <div class="language-card">
               <div class="language-header">
                 <div class="flag-container">
@@ -467,9 +512,23 @@
               </div>
               <div class="language-content">
                 <h2 class="language-name">English</h2>
-                <a href="/en" class="language-btn">Continue <i class="material-icons tiny">arrow_forward</i></a>
+                <a href="#" class="language-btn" onclick="selectLanguage('en')">Continue <i class="material-icons tiny">arrow_forward</i></a>
               </div>
             </div>
+          </div>
+        </div>
+        
+        <!-- User Role Selection -->
+        <div class="user-role-container">
+          <p class="user-role-label">Who are you? (Optional)</p>
+          <div class="input-field">
+            <select id="user-role">
+              <option value="" disabled selected>Choose your profile</option>
+              <option value="student">Student</option>
+              <option value="researcher">Researcher</option>
+              <option value="doctor">Doctor</option>
+              <option value="other">Other</option>
+            </select>
           </div>
         </div>
       </div>
@@ -487,10 +546,41 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Animazioni per il secondo elemento language-option
-      const secondOption = document.querySelectorAll('.language-option')[1];
+      // Initialize select dropdown
+      var elems = document.querySelectorAll('select');
+      var instances = M.FormSelect.init(elems);
+      
+      // Animate second language option
+      const secondOption = document.getElementById('en-option');
       secondOption.classList.add('floating');
+      
+      // Check if user has saved preferences and redirect accordingly
+      checkSavedPreferences();
     });
+    
+    // Function to check if user has saved preferences
+    function checkSavedPreferences() {
+      const savedLang = localStorage.getItem('lang');
+      if (savedLang) {
+        // Redirect to the saved language version
+        window.location.href = '/' + savedLang;
+      }
+    }
+    
+    // Function to handle language selection
+    function selectLanguage(lang) {
+      // Save language preference to localStorage
+      localStorage.setItem('lang', lang);
+      
+      // Save user role if selected
+      const userRoleSelect = document.getElementById('user-role');
+      if (userRoleSelect.value) {
+        localStorage.setItem('role', userRoleSelect.value);
+      }
+      
+      // Redirect to the appropriate language version
+      window.location.href = '/' + lang;
+    }
   </script>
 </body>
 </html>
