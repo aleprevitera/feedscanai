@@ -680,7 +680,7 @@
     
     // Function to send anonymous analytics data
     function sendAnonymousAnalytics(lang, role) {
-        const analyticsData = {
+      const analyticsData = {
         language: lang,
         userRole: role,
         timestamp: new Date().toISOString().split('T')[0]
@@ -689,17 +689,25 @@
       // URL dello script Google Apps Script
       const appScriptUrl = 'https://script.google.com/macros/s/AKfycbx2_mYDjSSL0HSzcyJYMk-mEvEvqodkguSfmOK91dFfqVRT-S7JV9lhc09-euRc-QZK/exec';
       
-      if (navigator.sendBeacon) {
-        navigator.sendBeacon(appScriptUrl, JSON.stringify(analyticsData));
-      } else {
-        fetch(appScriptUrl, {
-          method: 'POST',
-          keepalive: true,
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(analyticsData)
-        }).catch(error => console.log('Analytics error:', error));
+      // Usa FormData invece di JSON diretto
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(analyticsData));
+      
+      // Usa fetch invece di sendBeacon (più affidabile con GAS)
+      fetch(appScriptUrl, {
+        method: 'POST',
+        mode: 'no-cors', // Importante per evitare errori CORS
+        body: formData
+      })
+      .then(() => console.log('Dati analitici inviati'))
+      .catch(error => console.error('Errore invio analytics:', error));
+    
+      // Aggiungiamo un invio di backup con sendBeacon
+      try {
+        const blob = new Blob([JSON.stringify(analyticsData)], {type: 'application/json'});
+        navigator.sendBeacon(appScriptUrl, blob);
+      } catch (e) {
+        console.log('SendBeacon fallback error:', e);
       }
     }
   </script>
