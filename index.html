@@ -679,37 +679,49 @@
     }
     
     // Function to send anonymous analytics data
-    function sendAnonymousAnalytics(lang, role) {
-      const analyticsData = {
-        language: lang,
-        userRole: role,
-        timestamp: new Date().toISOString().split('T')[0]
-      };
-      
-      // URL dello script Google Apps Script
-      const appScriptUrl = 'https://script.google.com/macros/s/AKfycbx2_mYDjSSL0HSzcyJYMk-mEvEvqodkguSfmOK91dFfqVRT-S7JV9lhc09-euRc-QZK/exec';
-      
-      // Usa FormData invece di JSON diretto
-      const formData = new FormData();
-      formData.append('data', JSON.stringify(analyticsData));
-      
-      // Usa fetch invece di sendBeacon (più affidabile con GAS)
-      fetch(appScriptUrl, {
-        method: 'POST',
-        mode: 'no-cors', // Importante per evitare errori CORS
-        body: formData
-      })
-      .then(() => console.log('Dati analitici inviati'))
-      .catch(error => console.error('Errore invio analytics:', error));
+function sendAnonymousAnalytics(lang, role) {
+  const analyticsData = {
+    language: lang,
+    userRole: role,
+    timestamp: new Date().toISOString().split('T')[0]
+  };
+  
+  console.log("Sending analytics data:", analyticsData);
+  
+  // URL of the published Google Apps Script
+  const appScriptUrl = 'https://script.google.com/macros/s/AKfycbx2_mYDjSSL0HSzcyJYMk-mEvEvqodkguSfmOK91dFfqVRT-S7JV9lhc09-euRc-QZK/exec';
+  
+  // Method 1: Using FormData (most reliable with Google Apps Script)
+  const formData = new FormData();
+  formData.append('data', JSON.stringify(analyticsData));
+  
+  // Primary method: fetch with formData
+  fetch(appScriptUrl, {
+    method: 'POST',
+    mode: 'no-cors', // Required for cross-origin requests
+    body: formData,
+    redirect: 'follow'
+  })
+  .then(response => {
+    console.log('Analytics data sent via fetch/FormData');
+    // Note: With mode: 'no-cors', we cannot actually read the response
+  })
+  .catch(error => {
+    console.error('Error sending analytics via fetch:', error);
     
-      // Aggiungiamo un invio di backup con sendBeacon
-      try {
-        const blob = new Blob([JSON.stringify(analyticsData)], {type: 'application/json'});
-        navigator.sendBeacon(appScriptUrl, blob);
-      } catch (e) {
-        console.log('SendBeacon fallback error:', e);
-      }
+    // Fallback method: Use sendBeacon as backup only if fetch fails
+    try {
+      console.log('Attempting sendBeacon as fallback');
+      // For sendBeacon, we need to use URLSearchParams instead of FormData
+      const params = new URLSearchParams();
+      params.append('data', JSON.stringify(analyticsData));
+      navigator.sendBeacon(appScriptUrl, params);
+      console.log('Analytics data sent via sendBeacon');
+    } catch (e) {
+      console.error('SendBeacon fallback error:', e);
     }
+  });
+}
   </script>
 </body>
 </html>
